@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cash Master | بازی پول ساز</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Noto Naskh Arabic', serif;
+            background-color: #f5f5f5;
+            direction: rtl;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 0.3s ease;
+        }
+        
+        .business-card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .business-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .coin-animation {
+            animation: coinJump 0.5s ease-out;
+        }
+        
+        @keyframes coinJump {
+            0% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-20px) scale(1.2); }
+            100% { transform: translateY(0) scale(1); }
+        }
+        
+        .manager-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        
+        .upgrade-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .click-area {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-green-600 to-green-400 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl md:text-3xl font-bold">Cash Master <i class="fas fa-coins ml-2"></i></h1>
+            <div class="flex items-center">
+                <div class="bg-green-700 px-4 py-2 rounded-full shadow-md flex items-center">
+                    <i class="fas fa-coins text-yellow-300 mr-2"></i>
+                    <span id="money-display" class="font-bold">0</span>
+                </div>
+                <button id="menu-btn" class="md:hidden ml-4 text-2xl focus:outline-none">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-6 flex flex-col md:flex-row">
+        <!-- Left Column - Click Area -->
+        <div class="md:w-1/2 lg:w-2/5 mb-6 md:mb-0 md:mr-6">
+            <div class="click-area rounded-xl shadow-xl p-6 h-full flex flex-col items-center justify-center cursor-pointer" id="click-area">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-white mb-2">کلیک کن و پول دربیار!</h2>
+                    <p id="click-value" class="text-white text-lg">هر کلیک: 
+                        <span class="font-bold text-yellow-200">1</span> 
+                        <i class="fas fa-coins text-yellow-300"></i>
+                    </p>
+                </div>
+                <div class="relative">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2933/2933315.png" alt="Coin" class="w-32 h-32" id="coin">
+                    <div class="absolute -top-4 -right-4 bg-yellow-400 text-yellow-800 rounded-full w-10 h-10 flex items-center justify-center shadow-md">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                </div>
+                <p class="mt-6 text-white text-center">برای افزایش درامد خودت بیزینس های مختلف رو خریداری کن</p>
+            </div>
+        </div>
+
+        <!-- Right Column - Businesses and Upgrades -->
+        <div class="md:w-1/2 lg:w-3/5">
+            <!-- Progress Bar and Tools -->
+            <div class="bg-white rounded-xl shadow-lg p-4 mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg font-bold text-gray-700">پیشرفت شما</h3>
+                    <span id="level-display" class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">سطح 1</span>
+                </div>
+                <div class="progress-bar mb-2">
+                    <div class="progress-fill" id="xp-bar" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between text-sm text-gray-600">
+                    <span id="xp-display">0/100</span>
+                    <span>درآمد کل: <span id="total-earned">0</span> <i classfas fa-coins text-yellow-500"></i></span>
+                </div>
+            </div>
+
+            <!-- Businesses Tab -->
+            <div class="bg-white rounded-xl shadow-lg p-4">
+                <div class="flex border-b border-gray-200 mb-4">
+                    <button class="tab-btn active py-2 px-4 font-medium text-green-600 border-b-2 border-green-600" data-tab="businesses">
+                        بیزینس ها
+                    </button>
+                    <button class="tab-btn py-2 px-4 font-medium text-gray-500" data-tab="managers">
+                        مدیران
+                    </button>
+                    <button class="tab-btn py-2 px-4 font-medium text-gray-500" data-tab="upgrades">
+                        ارتقاها
+                    </button>
+                </div>
+
+                <!-- Businesses Content -->
+                <div id="businesses-tab" class="tab-content active">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="businesses-container">
+                        <!-- Businesses will be added here by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Managers Content -->
+                <div id="managers-tab" class="tab-content hidden">
+                    <div class="grid grid-cols-1 gap-4" id="managers-container">
+                        <!-- Managers will be added here by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Upgrades Content -->
+                <div id="upgrades-tab" class="tab-content hidden">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="upgrades-container">
+                        <!-- Upgrades will be added here by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Stats Modal -->
+    <div id="stats-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">آمار بازی</h3>
+                <button id="close-stats" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">پول کل:</span>
+                    <span id="stats-total-money" class="font-bold">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">کلیک ها:</span>
+                    <span id="stats-total-clicks" class="font-bold">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">بیزینس ها:</span>
+                    <span id="stats-businesses-owned" class="font-bold">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">مدیران:</span>
+                    <span id="stats-managers-hired" class="font-bold">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">ارتقاها:</span>
+                    <span id="stats-upgrades-purchased" class="font-bold">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">زمان بازی:</span>
+                    <span id="stats-play-time" class="font-bold">0 ثانیه</span>
+                </div>
+            </div>
+            <div class="mt-6 pt-4 border-t border-gray-200 flex justify-between">
+                <button id="reset-game" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">
+                    ریست کردن بازی
+                </button>
+                <button id="save-game" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                    ذخیره بازی
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-4">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-3 md:mb-0">
+                <p class="text-sm">Cash Master &copy; 2023 - بازی شبیه ساز پول سازی</p>
+            </div>
+            <div class="flex space-x-4 space-x-reverse">
+                <button id="stats-btn" class="text-gray-300 hover:text-white">
+                    <i class="fas fa-chart-bar"></i> آمار
+                </button>
+                <button id="sound-btn" class="text-gray-300 hover:text-white">
+                    <i class="fas fa-volume-up"></i> صدا
+                </button>
+                <button id="help-btn" class="text-gray-300 hover:text-white">
+                    <i class="fas fa-question-circle"></i> راهنما
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Game State
+        const gameState = {
+            money: 0,
+            totalEarned: 0,
+            totalClicks: 0,
+            clickValue: 1,
+            level: 1,
+            xp: 0,
+            nextLevelXp: 100,
+            playTime: 0,
+            businesses: [
+                { id: 1, name: "دکه روزنامه", basePrice: 15, baseIncome: 0.1, owned: 0, icon: "newspaper" },
+                { id: 2, name: "کافی شاپ", basePrice: 100, baseIncome: 1, owned: 0, icon: "coffee" },
+                { id: 3, name: "رستوران", basePrice: 500, baseIncome: 5, owned: 0, icon: "utensils" },
+                { id: 4, name: "سینما", basePrice: 3000, baseIncome: 30, owned: 0, icon: "film" },
+                { id: 5, name: "شرکت نرم‌افزاری", basePrice: 10000, baseIncome: 100, owned: 0, icon: "laptop-code" },
+                { id: 6, name: "کارخانه", basePrice: 50000, baseIncome: 500, owned: 0, icon: "industry" },
+                { id: 7, name: "شرکت نفتی", basePrice: 200000, baseIncome: 2000, owned: 0, icon: "oil-can" },
+                { id: 8, name: "بانک", basePrice: 1000000, baseIncome: 10000, owned: 0, icon: "landmark" }
+            ],
+            managers: [
+                { id: 1, name: "مدیر دکه", price: 1000, businessId: 1, hired: false, icon: "user-tie" },
+                { id: 2, name: "مدیر کافی شاپ", price: 5000, businessId: 2, hired: false, icon: "user-tie" },
+                { id: 3, name: "مدیر رستوران", price: 20000, businessId: 3, hired: false, icon: "user-tie" },
+                { id: 4, name: "مدیر سینما", price: 100000, businessId: 4, hired: false, icon: "user-tie" },
+                { id: 5, name: "مدیر فناوری", price: 500000, businessId: 5, hired: false, icon: "user-tie" },
+                { id: 6, name: "مدیر کارخانه", price: 2000000, businessId: 6, hired: false, icon: "user-tie" },
+                { id: 7, name: "مدیر نفتی", price: 10000000, businessId: 7, hired: false, icon: "user-tie" },
+                { id: 8, name: "مدیر بانک", price: 50000000, businessId: 8, hired: false, icon: "user-tie" }
+            ],
+            upgrades: [
+                { id: 1, name: "کلیک بهتر", description: "مقدار پول هر کلیک را دوبرابر می‌کند", price: 100, purchased: false, effect: "click" },
+                { id: 2, name: "حرفه‌ای‌ها", description: "درآمد همه بیزینس‌ها را دوبرابر می‌کند", price: 1000, purchased: false, effect: "business" },
+                { id: 3, name: "کلیک طلایی", description: "هر 10 ثانیه یک کلیک طلایی اتفاق می‌افتد", price: 10000, purchased: false, effect: "goldenClick" },
+                { id: 4, name: "برنامه‌نویسی", description: "درآمد کلیک را با سطح شما افزایش می‌دهد", price: 100000, purchased: false, effect: "levelClick" },
+                { id: 5, name: "مدیریت ارشد", description: "درآمد همه بیزینس‌ها را 10 برابر می‌کند", price: 1000000, purchased: false, effect: "business" }
+            ],
+            soundEnabled: true,
+            lastGoldenClick: 0
+        };
+
+        // DOM Elements
+        const moneyDisplay = document.getElementById('money-display');
+        const clickArea = document.getElementById('click-area');
+        const coin = document.getElementById('coin');
+        const clickValue = document.getElementById('click-value');
+        const businessesContainer = document.getElementById('businesses-container');
+        const managersContainer = document.getElementById('managers-container');
+        const upgradesContainer = document.getElementById('upgrades-container');
+        const levelDisplay = document.getElementById('level-display');
+        const xpBar = document.getElementById('xp-bar');
+        const xpDisplay = document.getElementById('xp-display');
+        const totalEarned = document.getElementById('total-earned');
+        const statsModal = document.getElementById('stats-modal');
+        const statsBtn = document.getElementById('stats-btn');
+        const closeStats = document.getElementById('close-stats');
+        const resetGame = document.getElementById('reset-game');
+        const saveGame = document.getElementById('save-game');
+        const soundBtn = document.getElementById('sound-btn');
+        const helpBtn = document.getElementById('help-btn');
+        const tabs = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        // Initialize the game
+        function initGame() {
+            loadGame();
+            renderBusinesses();
+            renderManagers();
+            renderUpgrades();
+            updateUI();
+            
+            // Start game loop
+            setInterval(gameLoop, 1000);
+            setInterval(updateStats, 1000);
+        }
+
+        // Game loop
+        function gameLoop() {
+            gameState.playTime++;
+            
+            // Calculate passive income
+            let passiveIncome = 0;
+            gameState.businesses.forEach(business => {
+                if (business.owned > 0) {
+                    let income = business.baseIncome * business.owned;
+                    
+                    // Check if manager is hired
+                    const manager = gameState.managers.find(m => m.businessId === business.id && m.hired);
+                    if (manager) {
+                        income *= 2; // Manager doubles the income
+                    }
+                    
+                    // Apply business upgrades
+                    gameState.upgrades.forEach(upgrade => {
+                        if (upgrade.purchased && upgrade.effect === "business") {
+                            income *= 2;
+                        }
+                    });
+                    
+                    passiveIncome += income;
+                }
+            });
+            
+            // Add passive income
+            if (passiveIncome > 0) {
+                addMoney(passiveIncome);
+                
+                // Check for golden click
+                if (gameState.upgrades.some(u => u.id === 3 && u.purchased)) {
+                    const now = Date.now();
+                    if (now - gameState.lastGoldenClick > 10000) { // 10 seconds
+                        gameState.lastGoldenClick = now;
+                        goldenClick();
+                    }
+                }
+            }
+            
+            updateUI();
+        }
+
+        // Add money
+        function addMoney(amount) {
+            gameState.money += amount;
+            gameState.totalEarned += amount;
+            updateUI();
+        }
+
+        // Add XP
+        function addXP(amount) {
+            gameState.xp += amount;
+            
+            // Check level up
+            if (gameState.xp >= gameState.nextLevelXp) {
+                gameState.level++;
+                gameState.xp -= gameState.nextLevelXp;
+                gameState.nextLevelXp = Math.floor(gameState.nextLevelXp * 1.5);
+                
+                // Level up effect
+                if (gameState.soundEnabled) {
+                    playSound('levelUp');
+                }
+                
+                // Apply level click upgrades
+                if (gameState.upgrades.some(u => u.id === 4 && u.purchased)) {
+                    gameState.clickValue = gameState.level;
+                }
+            }
+            
+            updateUI();
+        }
+
+        // Golden click effect
+        function goldenClick() {
+            const goldenAmount = gameState.clickValue * 100;
+            addMoney(goldenAmount);
+            addXP(50);
+            
+            // Visual effect
+            coin.classList.add('golden-click');
+            setTimeout(() => {
+                coin.classList.remove('golden-click');
+            }, 1000);
+            
+            if (gameState.soundEnabled) {
+                playSound('goldenClick');
+            }
+        }
+
+        // Buy business
+        function buyBusiness(businessId) {
+            const business = gameState.businesses.find(b => b.id === businessId);
+            if (!business) return;
+            
+            const price = getBusinessPrice(businessId);
+            
+            if (gameState.money >= price) {
+                gameState.money -= price;
+                business.owned++;
+                addXP(5);
+                
+                if (gameState.soundEnabled) {
+                    playSound('purchase');
+                }
+                
+                renderBusinesses();
+                updateUI();
+            } else {
+                if (gameState.soundEnabled) {
+                    playSound('error');
+                }
+                
+                // Shake the money display
+                moneyDisplay.parentElement.classList.add('shake');
+                setTimeout(() => {
+                    moneyDisplay.parentElement.classList.remove('shake');
+                }, 500);
+            }
+        }
+
+        // Hire manager
+        function hireManager(managerId) {
+            const manager = gameState.managers.find(m => m.id === managerId);
+            if (!manager || manager.hired) return;
+            
+            if (gameState.money >= manager.price) {
+                gameState.money -= manager.price;
+                manager.hired = true;
+                addXP(10);
+                
+                if (gameState.soundEnabled) {
+                    playSound('purchase');
+                }
+                
+                renderManagers();
+                updateUI();
+            } else {
+                if (gameState.soundEnabled) {
+                    playSound('error');
+                }
+                
+                // Shake the money display
+                moneyDisplay.parentElement.classList.add('shake');
+                setTimeout(() => {
+                    moneyDisplay.parentElement.classList.remove('shake');
+                }, 500);
+            }
+        }
+
+        // Buy upgrade
+        function buyUpgrade(upgradeId) {
+            const upgrade = gameState.upgrades.find(u => u.id === upgradeId);
+            if (!upgrade || upgrade.purchased) return;
+            
+            if (gameState.money >= upgrade.price) {
+                gameState.money -= upgrade.price;
+                upgrade.purchased = true;
+                addXP(20);
+                
+                // Apply upgrade effects
+                if (upgrade.effect === "click") {
+                    gameState.clickValue *= 2;
+                }
+                
+                if (upgrade.effect === "levelClick") {
+                    gameState.clickValue = gameState.level;
+                }
+                
+                if (gameState.soundEnabled) {
+                    playSound('upgrade');
+                }
+                
+                renderUpgrades();
+                updateUI();
+            } else {
+                if (gameState.soundEnabled) {
+                    playSound('error');
+                }
+                
+                // Shake the money display
+                moneyDisplay.parentElement.classList.add('shake');
+                setTimeout(() => {
+                    moneyDisplay.parentElement.classList.remove('shake');
+                }, 500);
+            }
+        }
+
+        // Get business price
+        function getBusinessPrice(businessId) {
+            const business = gameState.businesses.find(b => b.id === businessId);
+            if (!business) return 0;
+            
+            // Price increases with each purchase
+            return Math.floor(business.basePrice * Math.pow(1.15, business.owned));
+        }
+
+        // Get business income
+        function getBusinessIncome(businessId) {
+            const business = gameState.businesses.find(b => b.id === businessId);
+            if (!business) return 0;
+            
+            let income = business.baseIncome * business.owned;
+            
+            // Manager effect
+            const manager = gameState.managers.find(m => m.businessId === business.id && m.hired);
+            if (manager) {
+                income *= 2;
+            }
+            
+            // Upgrade effects
+            gameState.upgrades.forEach(upgrade => {
+                if (upgrade.purchased && upgrade.effect === "business") {
+                    income *= 2;
+                }
+            });
+            
+            return income;
+        }
+
+        // Render businesses
+        function renderBusinesses() {
+            businessesContainer.innerHTML = '';
+            
+            gameState.businesses.forEach(business => {
+                const price = getBusinessPrice(business.id);
+                const income = getBusinessIncome(business.id);
+                const hasManager = gameState.managers.some(m => m.businessId === business.id && m.hired);
+                
+                const businessCard = document.createElement('div');
+                businessCard.className = 'business-card bg-white rounded-lg overflow-hidden shadow-md';
+                businessCard.innerHTML = `
+                    <div class="p-4 flex flex-col h-full ${hasManager ? 'manager-card' : ''}">
+                        <div class="flex items-center mb-3">
+                            <div class="bg-green-100 p-3 rounded-full mr-3">
+                                <i class="fas fa-${business.icon} text-green-600 text-lg"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg">${business.name}</h4>
+                                <p class="text-sm text-gray-600">درآمد: ${income.toFixed(1)} <i class="fas fa-coins text-yellow-500 text-xs"></i>/ثانیه</p>
+                            </div>
+                        </div>
+                        <div class="mt-auto">
+                            <button onclick="buyBusiness(${business.id})" 
+                                    class="w-full py-2 rounded-lg ${gameState.money >= price ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-300'} text-white transition duration-200">
+                                ${business.owned > 0 ? `${business.owned} عدد` : 'خرید'} | ${price.toLocaleString()} <i class="fas fa-coins"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                businessesContainer.appendChild(businessCard);
+            });
+        }
+
+        // Render managers
+        function renderManagers() {
+            managersContainer.innerHTML = '';
+            
+            gameState.managers.forEach(manager => {
+                const business = gameState.businesses.find(b => b.id === manager.businessId);
+                if (!business) return;
+                
+                const managerCard = document.createElement('div');
+                managerCard.className = 'manager-card bg-white rounded-lg overflow-hidden shadow-md';
+                managerCard.innerHTML = `
+                    <div class="p-4 flex flex-col h-full">
+                        <div class="flex items-center mb-3">
+                            <div class="bg-blue-100 p-3 rounded-full mr-3">
+                                <i class="fas fa-${manager.icon} text-blue-600 text-lg"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg">${manager.name}</h4>
+                                <p class="text-sm text-gray-600">${business.name} - درآمد را دوبرابر می‌کند</p>
+                            </div>
+                        </div>
+                        <div class="mt-auto">
+                            <button onclick="hireManager(${manager.id})" 
+                                    class="w-full py-2 rounded-lg ${!manager.hired ? (gameState.money >= manager.price ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-300') : 'bg-green-500'} text-white transition duration-200">
+                                ${manager.hired ? 'استخدام شده' : `استخدام | ${manager.price.toLocaleString()} <i class="fas fa-coins"></i>`}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                managersContainer.appendChild(managerCard);
+            });
+        }
+
+        // Render upgrades
+        function renderUpgrades() {
+            upgradesContainer.innerHTML = '';
+            
+            gameState.upgrades.forEach(upgrade => {
+                const upgradeCard = document.createElement('div');
+                upgradeCard.className = 'business-card bg-white rounded-lg overflow-hidden shadow-md';
+                upgradeCard.innerHTML = `
+                    <div class="p-4 flex flex-col h-full">
+                        <div class="flex items-center mb-3">
+                            <div class="bg-purple-100 p-3 rounded-full mr-3">
+                                <i class="fas ${upgrade.purchased ? 'fa-check text-green-600' : 'fa-bolt text-purple-600'} text-lg"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg">${upgrade.name}</h4>
+                                <p class="text-sm text-gray-600">${upgrade.description}</p>
+                            </div>
+                        </div>
+                        <div class="mt-auto">
+                            <button onclick="buyUpgrade(${upgrade.id})" 
+                                    class="w-full py-2 rounded-lg ${!upgrade.purchased ? (gameState.money >= upgrade.price ? 'upgrade-btn hover:opacity-90' : 'bg-gray-300') : 'bg-green-500'} text-white transition duration-200">
+                                ${upgrade.purchased ? 'خریداری شده' : `خرید | ${upgrade.price.toLocaleString()} <i class="fas fa-coins"></i>`}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                upgradesContainer.appendChild(upgradeCard);
+            });
+        }
+
+        // Click handler
+        function handleClick() {
+            addMoney(gameState.clickValue);
+            addXP(1);
+            gameState.totalClicks++;
+            
+            // Coin animation
+            coin.classList.add('coin-animation');
+            setTimeout(() => {
+                coin.classList.remove('coin-animation');
+            }, 500);
+            
+            if (gameState.soundEnabled) {
+                playSound('click');
+            }
+        }
+
+        // Play sound
+        function playSound(type) {
+            // In a real game, you would play actual sound files here
+            console.log(`Playing ${type} sound`);
+        }
+
+        // Update UI
+        function updateUI() {
+            // Update money display
+            moneyDisplay.textContent = Math.floor(gameState.money).toLocaleString();
+            
+            // Update click value
+            clickValue.innerHTML = `هر کلیک: <span class="font-bold text-yellow-200">${gameState.clickValue}</span> <i class="fas fa-coins text-yellow-300"></i>`;
+            
+            // Update level and XP
+            levelDisplay.textContent = `سطح ${gameState.level}`;
+            xpBar.style.width = `${(gameState.xp / gameState.nextLevelXp) * 100}%`;
+            xpDisplay.textContent = `${gameState.xp}/${gameState.nextLevelXp}`;
+            
+            // Update total earned
+            totalEarned.textContent = Math.floor(gameState.totalEarned).toLocaleString();
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('stats-total-money').textContent = Math.floor(gameState.totalEarned).toLocaleString();
+            document.getElementById('stats-total-clicks').textContent = gameState.totalClicks.toLocaleString();
+            document.getElementById('stats-businesses-owned').textContent = 
+                gameState.businesses.reduce((sum, b) => sum + b.owned, 0).toLocaleString();
+            document.getElementById('stats-managers-hired').textContent = 
+                gameState.managers.filter(m => m.hired).length.toLocaleString();
+            document.getElementById('stats-upgrades-purchased').textContent = 
+                gameState.upgrades.filter(u => u.purchased).length.toLocaleString();
+            
+            // Format play time
+            const hours = Math.floor(gameState.playTime / 3600);
+            const minutes = Math.floor((gameState.playTime % 3600) / 60);
+            const seconds = gameState.playTime % 60;
+            
+            let timeStr = '';
+            if (hours > 0) timeStr += `${hours} ساعت `;
+            if (minutes > 0) timeStr += `${minutes} دقیقه `;
+            timeStr += `${seconds} ثانیه`;
+            
+            document.getElementById('stats-play-time').textContent = timeStr;
+        }
+
+        // Save game
+        function saveGameState() {
+            localStorage.setItem('cashMasterSave', JSON.stringify(gameState));
+            
+            // Show save confirmation
+            const saveBtn = document.getElementById('save-game');
+            saveBtn.textContent = 'ذخیره شد!';
+            saveBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+            saveBtn.classList.add('bg-green-600');
+            
+            setTimeout(() => {
+                saveBtn.textContent = 'ذخیره بازی';
+                saveBtn.classList.remove('bg-green-600');
+                saveBtn.classList.add('bg-green-500', 'hover:bg-green-600');
+            }, 2000);
+        }
+
+        // Load game
+        function loadGame() {
+            const savedState = localStorage.getItem('cashMasterSave');
+            if (savedState) {
+                try {
+                    const parsedState = JSON.parse(savedState);
+                    
+                    // Merge with default state
+                    for (const key in parsedState) {
+                        if (gameState.hasOwnProperty(key)) {
+                            gameState[key] = parsedState[key];
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to load game:', e);
+                }
+            }
+        }
+
+        // Reset game
+        function resetGameState() {
+            if (confirm('آیا مطمئن هستید که می‌خواهید بازی را ریست کنید؟ تمام پیشرفت شما از بین خواهد رفت.')) {
+                localStorage.removeItem('cashMasterSave');
+                
+                // Reset to default state
+                gameState.money = 0;
+                gameState.totalEarned = 0;
+                gameState.totalClicks = 0;
+                gameState.clickValue = 1;
+                gameState.level = 1;
+                gameState.xp = 0;
+                gameState.nextLevelXp = 100;
+                gameState.playTime = 0;
+                
+                gameState.businesses.forEach(b => {
+                    b.owned = 0;
+                });
+                
+                gameState.managers.forEach(m => {
+                    m.hired = false;
+                });
+                
+                gameState.upgrades.forEach(u => {
+                    u.purchased = false;
+                });
+                
+                renderBusinesses();
+                renderManagers();
+                renderUpgrades();
+                updateUI();
+                
+                // Close stats modal
+                statsModal.classList.add('hidden');
+            }
+        }
+
+        // Toggle sound
+        function toggleSound() {
+            gameState.soundEnabled = !gameState.soundEnabled;
+            soundBtn.innerHTML = gameState.soundEnabled ? 
+                '<i class="fas fa-volume-up"></i> صدا' : 
+                '<i class="fas fa-volume-mute"></i> بی‌صدا';
+        }
+
+        // Show help
+        function showHelp() {
+            alert('راهنمای بازی:\n\n1. روی دکمه کلیک کن تا پول دربیاری\n2. بیزینس های مختلف را خریداری کن تا درآمد غیرفعال داشته باشی\n3. مدیران را استخدام کن تا درآمد بیزینس‌ها را افزایش دهند\n4. ارتقاها را بخر تا درآمد کلیک و بیزینس‌ها را افزایش دهی\n\nهدف: تا جایی که می‌توانی پول دربیار و به سطح بالاتر برس!');
+        }
+
+        // Event listeners
+        clickArea.addEventListener('click', handleClick);
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Update tabs
+                tabs.forEach(t => t.classList.remove('active', 'text-green-600', 'border-green-600'));
+                tabs.forEach(t => t.classList.add('text-gray-500'));
+                tab.classList.add('active', 'text-green-600', 'border-green-600');
+                
+                // Update tab contents
+                tabContents.forEach(content => {
+                    content.classList.add('hidden');
+                    content.classList.remove('active');
+                });
+                
+                document.getElementById(`${tabId}-tab`).classList.remove('hidden');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            });
+        });
+        
+        statsBtn.addEventListener('click', () => {
+            updateStats();
+            statsModal.classList.remove('hidden');
+        });
+        
+        closeStats.addEventListener('click', () => {
+            statsModal.classList.add('hidden');
+        });
+        
+        resetGame.addEventListener('click', resetGameState);
+        saveGame.addEventListener('click', saveGameState);
+        soundBtn.addEventListener('click', toggleSound);
+        helpBtn.addEventListener('click', showHelp);
+
+        // Expose functions to global scope for HTML onClick handlers
+        window.buyBusiness = buyBusiness;
+        window.hireManager = hireManager;
+        window.buyUpgrade = buyUpgrade;
+
+        // Initialize the game
+        window.onload = initGame;
+    </script>
+</body>
+</html>
